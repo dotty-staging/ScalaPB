@@ -1,6 +1,6 @@
 import ReleaseTransformations._
 
-scalaVersion in ThisBuild := "2.11.11"
+scalaVersion in ThisBuild := "0.2.0-RC1"
 
 crossScalaVersions in ThisBuild := Seq("2.10.6", "2.11.11", "2.12.2")
 
@@ -57,7 +57,7 @@ lazy val root =
       publish := {},
       publishLocal := {}
     ).aggregate(
-      runtimeJS, runtimeJVM, grpcRuntime, compilerPlugin, compilerPluginShaded, proptest, scalapbc)
+      runtimeJS, runtimeJVM, grpcRuntime, scalapbCompilerPlugin, compilerPluginShaded, proptest, scalapbc)
 
 lazy val runtime = crossProject.crossType(CrossType.Full).in(file("scalapb-runtime"))
   .settings(
@@ -109,7 +109,7 @@ lazy val grpcRuntime = project.in(file("scalapb-runtime-grpc"))
   )
   .settings(dottySettings)
 
-lazy val compilerPlugin = project.in(file("compiler-plugin"))
+lazy val scalapbCompilerPlugin = project.in(file("compiler-plugin"))
   .settings(
     sourceGenerators in Compile += Def.task {
       val file = (sourceManaged in Compile).value / "com" / "trueaccord" / "scalapb" / "compiler" / "Version.scala"
@@ -141,7 +141,7 @@ lazy val compilerPlugin = project.in(file("compiler-plugin"))
 // shaded protobuf. This is a workaround - this artifact will be removed in
 // the future.
 lazy val compilerPluginShaded = project.in(file("compiler-plugin-shaded"))
-  .dependsOn(compilerPlugin)
+  .dependsOn(scalapbCompilerPlugin)
   .settings(
     name := "compilerplugin-shaded",
     assemblyShadeRules in assembly := Seq(
@@ -178,10 +178,10 @@ lazy val compilerPluginShaded = project.in(file("compiler-plugin-shaded"))
   .settings(dottySettings)
 
 lazy val scalapbc = project.in(file("scalapbc"))
-  .dependsOn(compilerPlugin)
+  .dependsOn(scalapbCompilerPlugin)
 
 lazy val proptest = project.in(file("proptest"))
-  .dependsOn(runtimeJVM, grpcRuntime, compilerPlugin)
+  .dependsOn(runtimeJVM, grpcRuntime, scalapbCompilerPlugin)
     .configs( ShortTest )
     .settings( inConfig(ShortTest)(Defaults.testTasks): _*)
     .settings(
@@ -242,5 +242,12 @@ createVersionFile := {
   log.info(s"Created $f1")
   val f2 = genVersionFile(base / "e2e/project/", v)
   log.info(s"Created $f2")
+}
+
+TaskKey[Unit]("compileDotty") := {
+  compile.in(grpcRuntime, Compile).value
+  compile.in(runtimeJVM, Compile).value
+  compile.in(scalapbCompilerPlugin, Compile).value
+  compile.in(scalapbc, Compile).value
 }
 
