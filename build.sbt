@@ -244,7 +244,7 @@ createVersionFile := {
   log.info(s"Created $f2")
 }
 
-TaskKey[Unit]("compileDotty") := {
+TaskKey[Unit]("dottyCompile") := {
   compile.in(grpcRuntime, Compile).value
   compile.in(runtimeJVM, Compile).value
   compile.in(scalapbCompilerPlugin, Compile).value
