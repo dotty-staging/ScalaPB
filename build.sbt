@@ -106,6 +106,15 @@ lazy val root: Project =
       scalapbc
     )
 
+lazy val `dotty-community-build` = project
+  .in(file(".dotty-community-build"))
+  .aggregate(
+    runtimeJVM,
+    grpcRuntime,
+    compilerPlugin,
+    scalapbc
+  )
+
 // fastparse 2 is not available for Scala Native yet
 // https://github.com/lihaoyi/fastparse/issues/215
 lazy val runtime = crossProject(JSPlatform, JVMPlatform/*, NativePlatform*/)
@@ -123,6 +132,10 @@ lazy val runtime = crossProject(JSPlatform, JVMPlatform/*, NativePlatform*/)
       CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, v)) if v < 13 =>
           Seq(base / "scala-pre-2.13")
+        case Some((0, v)) if v <= 17 =>
+          Seq(base / "scala-pre-2.13")
+        case Some((0, v)) if v > 17 =>
+          Seq(base / "scala-2.13")
         case _ =>
           Nil
       }
@@ -164,6 +177,7 @@ lazy val runtime = crossProject(JSPlatform, JVMPlatform/*, NativePlatform*/)
               else Nil
     )
   )
+  .settings(dottySettings)
   .jsSettings(
     // Add JS-specific settings here
     scalacOptions += {
@@ -180,7 +194,7 @@ lazy val runtime = crossProject(JSPlatform, JVMPlatform/*, NativePlatform*/)
 */
 
 
-lazy val runtimeJVM    = runtime.jvm
+lazy val runtimeJVM    = runtime.jvm.settings(dottySettings)
 lazy val runtimeJS     = runtime.js
 //lazy val runtimeNative = runtime.native
 
@@ -200,6 +214,7 @@ lazy val grpcRuntime = project.in(file("scalapb-runtime-grpc"))
         ProblemFilters.exclude[IncompatibleSignatureProblem]("*")
     )
   )
+  .settings(dottySettings)
 
 val shadeTarget = settingKey[String]("Target to use when shading")
 
@@ -242,6 +257,7 @@ lazy val compilerPlugin = project.in(file("compiler-plugin"))
       )
     }
   )
+  .settings(dottySettings)
 
 // Until https://github.com/scalapb/ScalaPB/issues/150 is fixed, we are
 // publishing compiler-plugin bundled with protoc-bridge, and linked against
@@ -359,6 +375,7 @@ lazy val proptest = project.in(file("proptest"))
                 else Nil
       )
     )
+    .settings(dottySettings)
 
 def genVersionFile(out: File, version: String): File = {
   out.mkdirs()
@@ -399,6 +416,10 @@ lazy val lenses = crossProject(JSPlatform, JVMPlatform/*, NativePlatform*/).in(f
       CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, v)) if v < 13 =>
           Seq(base / "scala-pre-2.13")
+        case Some((0, v)) if v <= 17 =>
+          Seq(base / "scala-pre-2.13")
+        case Some((0, v)) if v > 17 =>
+          Seq(base / "scala-2.13")
         case _ =>
           Nil
       }
@@ -430,7 +451,7 @@ lazy val lenses = crossProject(JSPlatform, JVMPlatform/*, NativePlatform*/).in(f
   )
 */
 
-lazy val lensesJVM = lenses.jvm
+lazy val lensesJVM = lenses.jvm.settings(dottySettings)
 lazy val lensesJS = lenses.js
 //lazy val lensesNative = lenses.native
 
@@ -470,3 +491,8 @@ lazy val docs = project.in(file("docs"))
     ghpagesBranch := "master",
     includeFilter in ghpagesCleanSite := GlobFilter((ghpagesRepository.value / "README.md").getCanonicalPath)
   )
+
+lazy val dottySettings = List(
+  libraryDependencies := libraryDependencies.value.map(_.withDottyCompat(scalaVersion.value)),
+  scalacOptions := List("-language:Scala2,implicitConversions", "-Xignore-scala2-macros")
+)

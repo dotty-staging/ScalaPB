@@ -681,12 +681,12 @@ class DescriptorImplicits(params: GeneratorParams, files: Seq[FileDescriptor]) {
     }
   }
 
-  implicit class EnumDescriptorPimp(val enum: EnumDescriptor) {
-    def parentMessage: Option[Descriptor] = Option(enum.getContainingType)
+  implicit class EnumDescriptorPimp(val `enum`: EnumDescriptor) {
+    def parentMessage: Option[Descriptor] = Option(`enum`.getContainingType)
 
-    def scalaOptions: EnumOptions = enum.getOptions.getExtension[EnumOptions](Scalapb.enumOptions)
+    def scalaOptions: EnumOptions = `enum`.getOptions.getExtension[EnumOptions](Scalapb.enumOptions)
 
-    def name: String = enum.getName match {
+    def name: String = `enum`.getName match {
       case "Option" => "OptionEnum"
       case "ValueType" =>
         "ValueTypeEnum" // Issue 348, conflicts with "type ValueType" in GeneratedEnumCompanion.
@@ -697,7 +697,7 @@ class DescriptorImplicits(params: GeneratorParams, files: Seq[FileDescriptor]) {
 
     lazy val scalaTypeName: String = parentMessage match {
       case Some(p) => p.scalaTypeName + "." + nameSymbol
-      case None    => (enum.getFile.scalaPackagePartsAsSymbols :+ nameSymbol).mkString(".")
+      case None    => (`enum`.getFile.scalaPackagePartsAsSymbols :+ nameSymbol).mkString(".")
     }
 
     def scalaTypeNameWithMaybeRoot(context: Descriptor): String = {
@@ -708,14 +708,14 @@ class DescriptorImplicits(params: GeneratorParams, files: Seq[FileDescriptor]) {
       else fullName
     }
 
-    def isTopLevel = enum.getContainingType == null
+    def isTopLevel = `enum`.getContainingType == null
 
-    def javaTypeName = enum.getFile.fullJavaName(enum.getFullName)
+    def javaTypeName = `enum`.getFile.fullJavaName(`enum`.getFullName)
 
-    def javaConversions = enum.getFile.javaConversions
+    def javaConversions = `enum`.getFile.javaConversions
 
     def valuesWithNoDuplicates =
-      enum.getValues.asScala
+      `enum`.getValues.asScala
         .groupBy(_.getNumber)
         .mapValues(_.head)
         .values
@@ -723,15 +723,15 @@ class DescriptorImplicits(params: GeneratorParams, files: Seq[FileDescriptor]) {
         .sortBy(_.getNumber)
 
     def javaDescriptorSource: String =
-      if (enum.isTopLevel)
-        s"${enum.getFile.fileDescriptorObjectName}.javaDescriptor.getEnumTypes.get(${enum.getIndex})"
+      if (`enum`.isTopLevel)
+        s"${`enum`.getFile.fileDescriptorObjectName}.javaDescriptor.getEnumTypes.get(${`enum`.getIndex})"
       else
-        s"${enum.getContainingType.scalaTypeName}.javaDescriptor.getEnumTypes.get(${enum.getIndex})"
+        s"${`enum`.getContainingType.scalaTypeName}.javaDescriptor.getEnumTypes.get(${`enum`.getIndex})"
 
     def scalaDescriptorSource: String =
-      if (enum.isTopLevel)
-        s"${enum.getFile.fileDescriptorObjectName}.scalaDescriptor.enums(${enum.getIndex})"
-      else s"${enum.getContainingType.scalaTypeName}.scalaDescriptor.enums(${enum.getIndex})"
+      if (`enum`.isTopLevel)
+        s"${`enum`.getFile.fileDescriptorObjectName}.scalaDescriptor.enums(${`enum`.getIndex})"
+      else s"${`enum`.getContainingType.scalaTypeName}.scalaDescriptor.enums(${`enum`.getIndex})"
 
     def baseTraitExtends: Seq[String] =
       "_root_.scalapb.GeneratedEnum" +: scalaOptions.getExtendsList.asScala.toSeq
@@ -740,16 +740,16 @@ class DescriptorImplicits(params: GeneratorParams, files: Seq[FileDescriptor]) {
       s"_root_.scalapb.GeneratedEnumCompanion[${nameSymbol}]" +: scalaOptions.getCompanionExtendsList.asScala.toSeq
 
     def sourcePath: Seq[Int] = {
-      if (enum.isTopLevel) Seq(FileDescriptorProto.ENUM_TYPE_FIELD_NUMBER, enum.getIndex)
+      if (`enum`.isTopLevel) Seq(FileDescriptorProto.ENUM_TYPE_FIELD_NUMBER, `enum`.getIndex)
       else
-        enum.getContainingType.sourcePath ++ Seq(
+        `enum`.getContainingType.sourcePath ++ Seq(
           DescriptorProto.ENUM_TYPE_FIELD_NUMBER,
-          enum.getIndex
+          `enum`.getIndex
         )
     }
 
     def comment: Option[String] = {
-      enum.getFile
+      `enum`.getFile
         .findLocationByPath(sourcePath)
         .map(t => t.getLeadingComments + t.getTrailingComments)
         .map(Helper.escapeComment)

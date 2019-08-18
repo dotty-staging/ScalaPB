@@ -211,7 +211,7 @@ object Nodes {
             })
             .toSeq: _*
         )
-        .print(enums)((enum, p) => p.print(enum))
+        .print(enums)((`enum`, p) => p.print(`enum`))
         .print(messages)((message, p) => p.print(rootNode, this, message))
         .print(services)((service, p) => p.print(service))
 
@@ -291,7 +291,7 @@ object Nodes {
       printer
         .add(s"message $name {  // message $id")
         .indent
-        .print(enums)((enum, p) => p.print(enum))
+        .print(enums)((`enum`, p) => p.print(`enum`))
         .print(messages)((message, p) => p.print(rootNode, fileNode, message))
         .print(makeList(fields)) {
           case (printer, OneofOpener(name)) =>

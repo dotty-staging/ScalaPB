@@ -228,9 +228,9 @@ object FileDescriptorSpec extends TestSuite {
                                                 |}""".stripMargin)
       val fd   = FileDescriptor.buildFrom(fdp, Nil)
       val msg  = fd.messages(0)
-      val enum = msg.enums(0)
+      val `enum` = msg.enums(0)
       msg.fullName ==> ("mypkg.Msg1")
-      msg.findFieldByName("field_full").get.scalaType ==> (ScalaType.Enum(enum))
+      msg.findFieldByName("field_full").get.scalaType ==> (ScalaType.Enum(`enum`))
     }
   }
 }

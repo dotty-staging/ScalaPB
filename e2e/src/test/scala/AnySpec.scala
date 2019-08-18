@@ -1,8 +1,8 @@
 import com.thesamet.proto.any._
 import com.google.protobuf.any.Any
 import org.scalatest._
-import com.thesamet.proto.e2e.enum.EnumTest
-import com.thesamet.proto.e2e.enum.Color
+import com.thesamet.proto.e2e.`enum`.EnumTest
+import com.thesamet.proto.e2e.`enum`.Color
 
 class AnySpec extends FlatSpec with MustMatchers {
   val green = EnumTest(color = Some(Color.GREEN))
