@@ -494,5 +494,5 @@ lazy val docs = project.in(file("docs"))
 
 lazy val dottySettings = List(
   libraryDependencies := libraryDependencies.value.map(_.withDottyCompat(scalaVersion.value)),
-  scalacOptions ++= List("-language:Scala2Compat", "-Xignore-scala2-macros")
+  scalacOptions ++= List("-language:Scala2Compat,implicitConversions", "-Xignore-scala2-macros")
 )
