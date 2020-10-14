@@ -134,7 +134,7 @@ lazy val runtime = crossProject(JSPlatform, JVMPlatform/*, NativePlatform*/)
           Seq(base / "scala-pre-2.13")
         case Some((0, v)) if v <= 17 =>
           Seq(base / "scala-pre-2.13")
-        case Some((0, v)) if v > 17 =>
+        case Some((x, v)) if x == 3 || v > 17 =>
           Seq(base / "scala-2.13")
         case _ =>
           Nil
@@ -418,7 +418,7 @@ lazy val lenses = crossProject(JSPlatform, JVMPlatform/*, NativePlatform*/).in(f
           Seq(base / "scala-pre-2.13")
         case Some((0, v)) if v <= 17 =>
           Seq(base / "scala-pre-2.13")
-        case Some((0, v)) if v > 17 =>
+        case Some((x, v)) if x == 3 || v > 17 =>
           Seq(base / "scala-2.13")
         case _ =>
           Nil
